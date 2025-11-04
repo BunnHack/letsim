@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Projects</title>
+    <link href="styles/tailwind.css" rel="stylesheet">
+    <script src="/node_modules/lucide/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-gray-50">
+
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold">Projects</h1>
+                    </div>
+                    <div class="flex items-center gap-2">
+                         <a href="editor.html" class="inline-flex items-center justify-center rounded-md border border-transparent bg-black px-4 py-2 text-sm font-medium text-white shadow-sm hover:opacity-90">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                            New Project
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <div class="space-y-12">
+                        <!-- My Projects -->
+                        <div>
+                            <h2 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">My Projects</h2>
+                            <div id="my-projects-grid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <!-- New Project Card -->
+                                <a href="editor.html" class="group relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all">
+                                    <i data-lucide="plus-circle" class="mx-auto h-12 w-12 text-gray-400 group-hover:text-gray-500"></i>
+                                    <span class="mt-2 block text-sm font-medium text-gray-900">Create a new project</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Community Projects -->
+                        <div>
+                            <h2 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Community Projects</h2>
+                            
+                            <!-- Search and Sort Controls -->
+                            <div class="mt-4 mb-6 flex items-center gap-4">
+                                <!-- Search Bar -->
+                                <div class="relative flex-grow">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i data-lucide="search" class="h-5 w-5 text-gray-400"></i>
+                                    </div>
+                                    <input 
+                                        type="text" 
+                                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-black focus:border-transparent sm:text-sm" 
+                                        placeholder="Search community projects..."
+                                    >
+                                </div>
+                                
+                                <!-- Sort Dropdown -->
+                                <div class="relative">
+                                    <button id="sort-menu-button" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                                        <span id="sort-menu-label">New</span>
+                                        <i data-lucide="chevron-down" class="ml-2 -mr-1 h-5 w-5"></i>
+                                    </button>
+
+                                    <div id="sort-menu" class="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10">
+                                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="sort-menu-button">
+                                            <a href="#" class="sort-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" data-value="New">New</a>
+                                            <a href="#" class="sort-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" data-value="Hot">Hot</a>
+                                            <a href="#" class="sort-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" data-value="Featured">Featured</a>
+                                            <a href="#" class="sort-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" data-value="Top">Top</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="community-projects-grid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="js/home.js" type="module"></script>
+</body>
+</html>
