@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Preview</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.1.2/css/basecoat.min.css">
+    <script>
+        // Fix for DataCloneError: Failed to execute 'postMessage' on 'Window'
+        if (typeof window.PerformanceObserver === 'function') {
+            const originalObserve = PerformanceObserver.prototype.observe;
+            PerformanceObserver.prototype.observe = function(options) {
+                if (options && options.type === 'longtask' && options.buffered) {
+                    // This is a specific workaround for an issue seen with some browser extensions
+                    // or libraries that can cause this error.
+                    // By creating and immediately disconnecting a new observer for the same type,
+                    // we can sometimes flush problematic entries.
+                    const dummyObserver = new PerformanceObserver(() => {});
+                    dummyObserver.observe({type: 'longtask', buffered: true});
+                    dummyObserver.disconnect();
+                }
+                
+                // Let's also wrap the callback to be safe
+                const originalCallback = this['callback'];
+                if (originalCallback) {
+                    this['callback'] = (list, observer) => {
+                        const entries = list.getEntries();
+                        // Check if any entry has serverTiming, if so, we might have issues.
+                        // For now, we will just pass it through, but this is a good place to debug.
+                        return originalCallback.call(this, list, observer);
+                    };
+                }
+                
+                return originalObserve.call(this, options);
+            };
+        }
+    </script>
+    <link href="styles/tailwind.css" rel="stylesheet">
+    <script src="/node_modules/lucide/dist/umd/lucide.min.js"></script>
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="/node_modules/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="/node_modules/codemirror/theme/material-darker.css">
+    <!-- CodeMirror JS -->
+    <script src="/node_modules/codemirror/lib/codemirror.js"></script>
+    <script src="/node_modules/codemirror/mode/xml/xml.js"></script>
+    <script src="/node_modules/codemirror/mode/javascript/javascript.js"></script>
+    <script src="/node_modules/codemirror/mode/css/css.js"></script>
+    <script src="/node_modules/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+    <!-- JSZip -->
+    <script src="/node_modules/jszip/dist/jszip.min.js"></script>
+    <!-- Split.js -->
+    <script src="/node_modules/split.js/dist/split.min.js"></script>
+    <!-- Custom Editor Styles -->
+    <link rel="stylesheet" href="styles/editor.css">
+</head>
+<body class="h-screen overflow-hidden flex flex-col bg-white">
+    <!-- Topbar -->
+    <header class="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-5 flex-shrink-0 relative">
+        <div class="flex items-center gap-4 flex-1 min-w-0">
+            <a href="/index.html" class="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 transition-colors hover:bg-gray-100" title="Back to projects">
+                <i data-lucide="arrow-left" class="w-4 h-4 text-gray-500"></i>
+            </a>
+            <div class="flex items-center gap-2">
+                <div class="relative">
+                    <button id="userProfileBtn" class="w-8 h-8 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
+                        <img class="w-full h-full object-cover" src="https://i.pravatar.cc/32" alt="User avatar">
+                    </button>
+                    <div id="userProfileDropdown" class="origin-top-left absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden z-10">
+                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
+                            <a href="/profile.html" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">Your Profile</a>
+                            <a href="#" id="userSettingsBtn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">Settings</a>
+                        </div>
+                    </div>
+                </div>
+                <h1 id="projectName" contenteditable="true" class="text-lg font-semibold outline-none focus:ring-2 focus:ring-blue-500 rounded-md px-2 cursor-text hover:bg-gray-100 transition-colors truncate">AI Code Preview</h1>
+            </div>
+        </div>
+        <div class="flex-1 flex justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div class="flex gap-0 bg-gray-100 rounded-md p-1">
+                <button class="viewport-btn p-2 rounded bg-black text-white flex items-center justify-center text-xs font-medium transition-all" data-viewport="mobile" title="Mobile">
+                    <i data-lucide="smartphone" class="w-5 h-5"></i>
+                </button>
+                <button class="viewport-btn p-2 rounded bg-transparent text-gray-600 flex items-center justify-center text-xs font-medium transition-all hover:bg-gray-200 hover:text-black" data-viewport="tablet" title="Tablet">
+                    <i data-lucide="tablet" class="w-5 h-5"></i>
+                </button>
+                <button class="viewport-btn p-2 rounded bg-transparent text-gray-600 flex items-center justify-center text-xs font-medium transition-all hover:bg-gray-200 hover:text-black" data-viewport="desktop" title="Desktop">
+                    <i data-lucide="monitor" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 flex justify-end min-w-0">
+            <div class="flex gap-2">
+                <button class="w-10 h-10 border border-gray-200 bg-white rounded-md flex items-center justify-center transition-all hover:bg-gray-100 hover:border-black" id="openNewWindowBtn" title="Open in New Window">
+                    <i data-lucide="external-link" class="w-5 h-5"></i>
+                </button>
+                <button class="w-10 h-10 border border-gray-200 bg-white rounded-md flex items-center justify-center transition-all hover:bg-gray-100 hover:border-black" id="codeEditorBtn" title="Code Editor">
+                    <i data-lucide="code" class="w-5 h-5"></i>
+                </button>
+                <button class="w-10 h-10 border border-gray-200 bg-white rounded-md flex items-center justify-center transition-all hover:bg-gray-100 hover:border-black" id="refreshBtn" title="Refresh Preview">
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                </button>
+                <button class="w-10 h-10 border border-gray-200 bg-white rounded-md flex items-center justify-center transition-all hover:bg-gray-100 hover:border-black" id="downloadBtn" title="Download">
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                </button>
+                <button class="w-10 h-10 border border-gray-200 bg-white rounded-md flex items-center justify-center transition-all hover:bg-gray-100 hover:border-black" id="settingsBtn" title="Settings">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex overflow-hidden">
+        <!-- Chat Panel -->
+        <aside id="chat-panel-container" class="bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-5 border-b border-gray-200 flex items-center justify-between">
+                <h2 id="chatPanelTitle" class="text-base font-semibold">AI Assistant</h2>
+                <div class="flex items-center gap-2">
+                    <button id="visualEditorBtn" class="p-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200" title="Visual Editor">
+                        <i data-lucide="mouse-pointer-click" class="w-4 h-4"></i>
+                    </button>
+                    <button id="versionHistoryBtn" class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded hover:bg-gray-200 font-mono">V0</button>
+                </div>
+            </div>
+            <div id="chatPanelContent" class="flex-1 flex flex-col overflow-hidden" data-view="chat">
+                <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-4" id="chatMessages">
+                    <div class="message max-w-[85%] self-start animate-[slideIn_0.2s_ease]">
+                        <div class="bg-gray-100 text-black p-3 rounded-xl text-sm leading-relaxed">
+                            Hello! I'm your AI assistant. Describe what you'd like to build and I'll help you create it.
+                        </div>
+                    </div>
+                </div>
+                <div id="versionHistoryPanel" class="flex-1 flex flex-col overflow-hidden hidden">
+                    <!-- Version history will be rendered here -->
+                </div>
+                <div id="visualEditorPanel" class="flex-1 flex flex-col overflow-y-auto hidden">
+                    <!-- Visual editor UI will be rendered here -->
+                </div>
+            </div>
+            <div class="p-3 border-t border-gray-200" id="chatInputArea">
+                <form id="chatForm" class="relative w-full border rounded-xl bg-white shadow-sm flex flex-col">
+                    <div id="atFileSuggestions" class="hidden absolute bottom-full left-0 right-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto z-20">
+                        <!-- file suggestions populated by JS -->
+                    </div>
+                    <div id="attachmentPreviewContainer" class="p-3 border-b border-gray-200 hidden flex-wrap gap-2">
+                        <!-- Attachment previews will be injected here -->
+                    </div>
+                    <textarea 
+                        id="chatInput"
+                        class="w-full resize-none border-none p-3 shadow-none outline-none ring-0 bg-transparent focus-visible:ring-0 text-sm"
+                        style="max-height: 164px;"
+                        placeholder="Describe what you want to build..."
+                        rows="1"
+                    ></textarea>
+                    <div class="flex items-center justify-between p-1.5 pt-1">
+                        <!-- Left Tools -->
+                        <div class="flex items-center gap-1">
+                            <button type="button" id="attachmentBtn" class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors hover:bg-gray-100" title="Add attachment">
+                                <i data-lucide="paperclip" class="w-4 h-4 text-gray-500"></i>
+                            </button>
+                            <!-- Model Selector -->
+                            <div class="relative" id="modelSelector">
+                                <button type="button" class="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors" id="modelSelectorBtn">
+                                    <span id="selectedModel" class="font-semibold">GPT-4o</span>
+                                    <i data-lucide="chevron-down" class="ml-1 h-4 w-4 text-gray-400"></i>
+                                </button>
+                                <div id="modelSelectorDropdown" class="origin-bottom-left absolute left-0 bottom-full mb-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden">
+                                    <!-- Models will be populated here by JS -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Submit Button -->
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="errorIcon" class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors bg-red-100 text-red-600 hover:bg-red-200 hidden" title="An error was detected in the preview console.">
+                                <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                            </button>
+                            <button class="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-80 disabled:opacity-30 disabled:cursor-not-allowed" id="sendBtn" type="submit">
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <input type="file" id="fileInput" class="hidden" multiple>
+            </div>
+        </aside>
+
+        <!-- Preview Panel -->
+        <section class="relative bg-gray-100 flex items-center justify-center overflow-hidden" id="preview-panel">
+            <div id="previewLoadingOverlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10">
+                <i data-lucide="loader-2" class="w-8 h-8 text-gray-500 animate-spin"></i>
+                <p class="mt-2 text-sm text-gray-600">Loading preview...</p>
+            </div>
+            <div class="preview-container w-full h-full bg-white rounded-lg shadow-md transition-all overflow-hidden" id="previewContainer">
+                <iframe id="previewFrame" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin"></iframe>
+            </div>
+        </section>
+
+        <!-- Code Editor Panel (hidden by default) -->
+        <section class="bg-gray-100 flex overflow-hidden hidden" id="editor-panel">
+            <div class="w-full h-full bg-white rounded-lg shadow-md flex overflow-hidden">
+                <!-- File Explorer -->
+                <aside class="w-[250px] bg-gray-50 border-r border-gray-200 flex flex-col flex-shrink-0">
+                    <div class="p-3 border-b border-gray-200 flex items-center justify-between">
+                        <h3 class="text-sm font-semibold">Files</h3>
+                        <div class="flex items-center gap-1">
+                            <button class="w-7 h-7 rounded hover:bg-gray-200 flex items-center justify-center" id="uploadFileBtn" title="Upload File">
+                                <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                            </button>
+                            <button class="w-7 h-7 rounded hover:bg-gray-200 flex items-center justify-center" id="addFileBtn" title="Add File">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-2" id="fileList">
+                        <!-- File list will be populated dynamically -->
+                    </div>
+                </aside>
+                <!-- Code Editor -->
+                <div class="flex-1 flex flex-col overflow-hidden">
+                    <!-- Tabs -->
+                    <div class="flex items-center bg-gray-50 border-b border-gray-200 overflow-x-auto" id="editorTabs" style="scrollbar-width: thin;">
+                        <!-- Tabs will be added dynamically -->
+                    </div>
+                    <!-- Editor toolbar -->
+                    <div class="p-3 border-b border-gray-200 flex items-center justify-between bg-white">
+                        <h3 class="text-sm font-semibold" id="currentFileName">index.html</h3>
+                        <button class="px-3 py-1.5 bg-black text-white text-xs rounded hover:opacity-80" id="saveCodeBtn">
+                            Save
+                        </button>
+                    </div>
+                    <!-- CodeMirror Editor Container -->
+                    <div class="flex-1 overflow-hidden" id="editorContainer"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Container -->
+    <div id="modalContainer"></div>
+
+    <input type="file" id="editorFileInput" class="hidden" multiple>
+    <script src="app.js" type="module"></script>
+</body>
+</html>
