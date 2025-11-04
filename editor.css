@@ -1,0 +1,149 @@
+@import url('./tailwind.css');
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message-container:hover .action-bar {
+    opacity: 1;
+}
+
+.preview-container.mobile {
+    max-width: 375px;
+    max-height: 667px;
+}
+
+.preview-container.tablet {
+    max-width: 768px;
+    max-height: 1024px;
+}
+
+.preview-container.desktop {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+}
+
+#chatMessages::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chatMessages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#chatMessages::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 3px;
+}
+
+#chatMessages::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
+
+#fileList::-webkit-scrollbar {
+    width: 6px;
+}
+
+#fileList::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#fileList::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 3px;
+}
+
+#fileList::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
+
+#codeEditor {
+    tab-size: 2;
+}
+
+/* CodeMirror custom styles */
+.CodeMirror {
+    height: 100%;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+}
+
+/* Tab styles */
+.editor-tab {
+    padding: 8px 12px;
+    border-right: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    font-size: 13px;
+    background: transparent;
+    color: #6b7280;
+}
+
+.editor-tab:hover {
+    background: #e5e7eb;
+    color: #000;
+}
+
+.editor-tab.active {
+    background: white;
+    color: #000;
+    border-bottom: 2px solid #000;
+}
+
+.editor-tab .close-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.editor-tab:hover .close-tab {
+    opacity: 1;
+}
+
+.editor-tab .close-tab:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+#editorTabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+#editorTabs::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#editorTabs::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 2px;
+}
+
+#atFileSuggestions::-webkit-scrollbar {
+    width: 6px;
+}
+
+#atFileSuggestions::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#atFileSuggestions::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 3px;
+}
