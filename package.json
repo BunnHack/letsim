@@ -18,7 +18,5 @@
     "node-fetch": "^3.3.2",
     "split.js": "^1.6.5"
   },
-  "devDependencies": {
-    "tailwindcss": "^3.4.4"
-  }
+  "devDependencies": {}
 }
